@@ -19,7 +19,38 @@ async function getReviews() {
   });
   return Array.isArray(reviews) ? reviews : [];
 }
+function verifyAdminToken(token) {
+  try {
+    const secret = process.env.ADMIN_TOKEN_SECRET;
 
+    if (!secret || !token) return false;
+
+    const parts = token.split(".");
+    if (parts.length !== 2) return false;
+
+    const [payload, signature] = parts;
+
+    const expectedSignature = createHmac("sha256", secret)
+      .update(payload)
+      .digest("base64url");
+
+    const a = Buffer.from(signature);
+    const b = Buffer.from(expectedSignature);
+
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      return false;
+    }
+
+    const data = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8")
+    );
+
+    return data.role === "admin" && data.exp > Date.now();
+
+  } catch {
+    return false;
+  }
+}
 export default async (request) => {
   try {
     // PUBLIC: Display all reviews
