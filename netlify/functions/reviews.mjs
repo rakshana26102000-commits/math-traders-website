@@ -108,17 +108,16 @@ export default async (request) => {
       return json({ ok: true, review: item }, 201);
     }
 
-    // ADMIN: Delete a review
-    if (request.method === "DELETE") {
-      const password = process.env.ADMIN_PASSWORD || "";
-      const authorization = request.headers.get("authorization") || "";
+   // ADMIN: Delete a review
+if (request.method === "DELETE") {
+  const authorization = request.headers.get("authorization") || "";
+  const token = authorization.startsWith("Bearer ")
+    ? authorization.slice(7)
+    : "";
 
-      if (
-        !password ||
-        authorization !== `Bearer ${password}`
-      ) {
-        return json({ error: "Unauthorized" }, 401);
-      }
+  if (!verifyAdminToken(token)) {
+    return json({ error: "Unauthorized" }, 401);
+  }
 
       const id = String(body.id || "").trim();
 
