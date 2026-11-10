@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Traders | Admin Login</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;display:grid;place-items:center;
+  background:linear-gradient(135deg,#050b16,#102d48);
+  font-family:Arial,sans-serif;color:white;padding:20px
+}
+.card{
+  width:100%;max-width:420px;padding:35px;
+  background:#101e30;border:1px solid #28506e;
+  border-radius:18px;box-shadow:0 15px 45px #0008
+}
+h1{text-align:center;color:#55c8ff;font-size:26px}
+p{text-align:center;color:#b9c9d9}
+label{display:block;margin:22px 0 8px}
+input{
+  width:100%;padding:14px;border-radius:9px;
+  border:1px solid #36516a;background:#071321;
+  color:white;font-size:16px
+}
+button{
+  width:100%;padding:14px;margin-top:20px;
+  border:0;border-radius:9px;background:#12aeea;
+  color:#001522;font-weight:bold;font-size:16px;cursor:pointer
+}
+button:disabled{opacity:.6}
+#status{text-align:center;margin-top:18px;font-size:14px}
+#dashboard{display:none;text-align:center}
+.logout{background:#263d55;color:white}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div id="login">
+    <h1>MATH TRADERS</h1>
+    <p>Secure Admin Login</p>
+
+    <form id="loginForm">
+      <label for="password">Admin Password</label>
+      <input id="password" type="password"
+        placeholder="Enter admin password"
+        autocomplete="current-password" required>
+
+      <button id="loginBtn" type="submit">LOGIN</button>
+    </form>
+    <div id="status" role="status"></div>
+  </div>
+
+  <div id="dashboard">
+    <h1>Welcome Admin!</h1>
+    <p>Math Traders Admin Login Verified Successfully.</p>
+    <p>Admin authentication is active for this session.</p>
+    <button class="logout" id="logoutBtn">LOGOUT</button>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('loginForm');
+const statusBox = document.getElementById('status');
+const loginBtn = document.getElementById('loginBtn');
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'VERIFYING...';
+  statusBox.textContent = 'Checking credentials...';
+
+  try {
+    const password = document.getElementById('password').value;
+
+    const response = await fetch('/.netlify/functions/admin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok || !data.token) {
+      throw new Error(data.error || 'Invalid login');
+    }
+
+    sessionStorage.setItem('mathtraders_admin_token', data.token);
+
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+
+  } catch (error) {
+    statusBox.textContent =
+      error.message === 'Failed to fetch'
+      ? 'Connection error. Please try again.'
+      : 'Login failed. Please check your password and configuration.';
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'LOGIN';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('mathtraders_admin_token');
+  location.reload();
+});
+</script>
+
+</body>
+</html>
