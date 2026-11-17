@@ -256,7 +256,14 @@ document.getElementById("refreshBtn").addEventListener("click",loadReviews);
 
 async function loadAdminContent(){
  try{
-  const response=await fetch("/.netlify/functions/admin-content",{cache:"no-store"});
+
+   
+const token = sessionStorage.getItem("mathtraders_admin_token") || "";
+const response = await fetch("/.netlify/functions/admin-content", {
+  headers: { Authorization: `Bearer ${token}` },
+  cache: "no-store"
+});
+
   const data=await response.json();
   if(!response.ok)throw new Error(data.error||"Could not load content");
 
